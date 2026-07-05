@@ -7,18 +7,20 @@ English + Telugu · Customer login/signup · Renovation & Build-New cost calcula
 ## Run it on your computer (to preview)
 
 1. Install Python from python.org (if not installed)
-2. Open a terminal in this folder and run:
+2. Copy `.env.example` to `.env` and fill in `ADMIN_PASSWORD` and `SECRET_KEY` with your own values
+3. Open a terminal in this folder and run:
    ```
    pip install -r requirements.txt
+   export $(cat .env | xargs)   # loads ADMIN_PASSWORD and SECRET_KEY
    python app.py
    ```
-3. Open http://localhost:5000 in your browser
+4. Open http://localhost:5000 in your browser
 
 ## Logins
 
 - Customers: sign up on the site
-- **Admin:** go to `/admin-login` → username `admin`, password: see `ADMIN_PASSWORD` at the top of `app.py`
-  (already rotated off the original default; rotate again before going live if others have seen this repo)
+- **Admin:** go to `/admin-login` → username `admin`, password: whatever you set `ADMIN_PASSWORD` to in `.env`
+  (never commit `.env` — it's gitignored; only `.env.example` with placeholders is committed)
 
 ## Where the data lives
 

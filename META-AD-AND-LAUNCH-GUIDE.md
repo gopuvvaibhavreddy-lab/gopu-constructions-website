@@ -72,8 +72,8 @@ The site is one Python file — any beginner-friendly host works.
 5. Buy your domain (step 1 above) → in Render go to **Settings → Custom Domains** → add `gopuconstructions.in` → copy the DNS records Render shows into your domain provider's DNS page
 6. Done — site is live on your own domain with free HTTPS
 
-**Before launch — must-dos in `app.py`:**
-- `ADMIN_PASSWORD` and `SECRET_KEY` were rotated off their original defaults on 2026-07-05 — rotate them again yourself before launch if anyone else has seen this repo
+**Before launch — must-dos:**
+- `ADMIN_PASSWORD` and `SECRET_KEY` are read from environment variables, not hardcoded (see `.env.example`). In Render, set them under **Settings → Environment** — don't commit real values to the repo.
 - Note: on Render's free tier the Excel file resets when the server restarts — download it from the Admin page regularly, or upgrade to a paid instance (~$7/mo) with a persistent disk
 
 **Admin access:** go to `yourdomain.in/admin-login` → username `admin` + your password. You can see all customers, estimates, appointments, and download the Excel file anytime.

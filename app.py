@@ -7,8 +7,9 @@ Features: Sign up / Login, Renovation & Build-New cost estimators
 appointment booking (WhatsApp), Admin dashboard, Excel data storage.
 
 Run:  pip install flask openpyxl werkzeug
+      export ADMIN_PASSWORD=... SECRET_KEY=...   (see .env.example)
       python app.py
-Admin login:  admin / (see ADMIN_PASSWORD below)
+Admin login:  admin / (see ADMIN_PASSWORD env var)
 """
 
 import os
@@ -29,8 +30,10 @@ PHONE           = "+91 8332899003"
 WHATSAPP        = "918332899003"          # digits only, for wa.me links
 SERVICE_AREA    = "All of Telangana"
 ADMIN_USER      = "admin"
-ADMIN_PASSWORD  = "-PY-Z8x0^Hh0avL5FFVb"  # rotated 2026-07-05
-SECRET_KEY      = "db0f6c2df6d6a71beb18c653ee94b416cf77cf09adff7dcaf23fb39d0aa8e6dc"
+ADMIN_PASSWORD  = os.environ.get("ADMIN_PASSWORD", "dev-admin-change-me")
+SECRET_KEY      = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+if ADMIN_PASSWORD == "dev-admin-change-me" or SECRET_KEY == "dev-secret-change-me":
+    print("WARNING: ADMIN_PASSWORD/SECRET_KEY not set in environment — using insecure dev defaults.")
 EXCEL_FILE      = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.xlsx")
 
 # ------------------- TELANGANA 2026 PRICES (Rs / sqft) ----------------
