@@ -172,50 +172,115 @@ BASE = """
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ company }} | Construction & Renovation in Telangana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+Telugu:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--navy:#0f2a43;--orange:#f5a623;--orange-d:#e08c00;--bg:#f6f8fa;--card:#fff;--txt:#22303e;--mut:#67788a;}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;}
-body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;}
-header{background:var(--navy);color:#fff;padding:14px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.logo{font-size:1.3rem;font-weight:800;}.logo span{color:var(--orange);}
-nav a{color:#fff;text-decoration:none;margin-left:18px;font-size:.95rem;}
-nav a:hover{color:var(--orange);}
-.btn{display:inline-block;background:var(--orange);color:var(--navy);font-weight:700;padding:12px 26px;border-radius:8px;text-decoration:none;border:none;cursor:pointer;font-size:1rem;}
-.btn:hover{background:var(--orange-d);}
-.btn-outline{background:transparent;border:2px solid var(--orange);color:var(--orange);}
-.btn-wa{background:#25D366;color:#fff;}
+:root{
+  --blueprint:#0B3B63; --blueprint-d:#082C4C;
+  --paper:#EEF3F8; --card:#fff;
+  --chalk:#F6F3EA;
+  --laterite:#A8431F; --laterite-bright:#C1502B;
+  --ink:#16212C; --mut:#5C7086; --line:#CBD8E4;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+     font-family:'Noto Sans','Noto Sans Telugu',system-ui,sans-serif;}
+h1,h2,.logo-word{font-family:'Big Shoulders Display',sans-serif;font-weight:800;letter-spacing:.01em;text-transform:uppercase;}
+.mono,.rate,.total,td.num,th.num,input[type=number]{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+a{color:inherit;}
+:focus-visible{outline:3px solid var(--laterite-bright);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+
+header{background:var(--blueprint);color:var(--chalk);padding:16px 5%;display:flex;justify-content:space-between;
+       align-items:center;flex-wrap:wrap;gap:10px;border-bottom:2px dashed rgba(246,243,234,.35);}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:34px;height:34px;background:var(--laterite);color:var(--chalk);display:flex;align-items:center;
+          justify-content:center;font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:1.05rem;flex-shrink:0;}
+.logo-word{font-size:1.15rem;color:var(--chalk);}
+.logo-word em{font-style:normal;color:var(--laterite-bright);}
+nav a{text-decoration:none;margin-left:20px;font-size:.85rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+      color:var(--chalk);border-bottom:2px solid transparent;padding-bottom:2px;}
+nav a:hover{border-color:var(--laterite-bright);}
+
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--laterite);color:var(--chalk);font-weight:700;
+    padding:13px 24px;border-radius:3px;text-decoration:none;border:none;cursor:pointer;font-size:.95rem;
+    letter-spacing:.02em;transition:transform .15s,background .15s;}
+.btn:hover{background:var(--laterite-bright);transform:translateY(-2px);}
+.btn-outline{background:transparent;border:2px solid var(--blueprint);color:var(--blueprint);}
+.btn-outline:hover{background:var(--blueprint);color:var(--chalk);}
+.btn-wa{background:#1e7a4c;color:#fff;}
+.btn-wa:hover{background:#186039;}
+
 main{flex:1;}
-.wrap{max-width:1050px;margin:0 auto;padding:34px 5%;}
-h1{font-size:2rem;margin-bottom:8px;} h2{margin:20px 0 12px;} .te{color:var(--mut);font-size:.95rem;}
-.card{background:var(--card);border-radius:14px;padding:26px;box-shadow:0 2px 10px rgba(15,42,67,.08);}
+.wrap{max-width:1050px;margin:0 auto;padding:40px 5%;}
+h1{font-size:2.1rem;margin-bottom:10px;line-height:1.05;}
+h2{font-size:1.3rem;margin:24px 0 14px;color:var(--blueprint);}
+.te{color:var(--mut);font-size:.92rem;font-style:italic;}
+
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:3px;padding:26px;}
+.card::before,.card::after{content:"";position:absolute;width:10px;height:10px;border:2px solid var(--laterite-bright);
+                            opacity:0;transition:opacity .2s;}
+.card::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
+.card::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:22px;}
-.opt{border:2px solid transparent;text-align:center;cursor:pointer;transition:.2s;text-decoration:none;color:var(--txt);}
-.opt:hover{border-color:var(--orange);transform:translateY(-3px);}
-.opt .ic{font-size:3rem;}
-table{width:100%;border-collapse:collapse;margin-top:12px;background:#fff;}
-th,td{padding:10px 12px;border-bottom:1px solid #e4e9ee;text-align:left;font-size:.93rem;}
-th{background:var(--navy);color:#fff;}
-tr:hover td{background:#fff7e8;}
-input,select,textarea{width:100%;padding:11px;margin:6px 0 14px;border:1px solid #cfd8e0;border-radius:8px;font-size:1rem;}
-label{font-weight:600;font-size:.92rem;}
-.flash{background:#fff3cd;border:1px solid #ffe08a;padding:10px 14px;border-radius:8px;margin-bottom:14px;}
-.total{background:var(--navy);color:#fff;padding:18px;border-radius:10px;font-size:1.25rem;font-weight:700;margin-top:14px;}
-.total span{color:var(--orange);}
-footer{background:var(--navy);color:#c9d6e2;text-align:center;padding:18px;font-size:.88rem;}
-.hero{background:linear-gradient(rgba(15,42,67,.88),rgba(15,42,67,.88)),url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200') center/cover;color:#fff;text-align:center;padding:80px 5%;}
-.hero h1{font-size:2.6rem;} .hero p{margin:14px 0 26px;font-size:1.15rem;color:#dbe6f0;}
-.badge{display:inline-block;background:#e8f0e9;color:#1c7a35;padding:3px 10px;border-radius:20px;font-size:.8rem;font-weight:700;}
-.badge.p{background:#fdeaea;color:#b02a2a;}
-@media(max-width:600px){.hero h1{font-size:1.8rem;}nav a{margin-left:10px;}}
+.opt{text-align:center;cursor:pointer;transition:transform .15s;text-decoration:none;color:var(--ink);}
+.opt:hover{transform:translateY(-3px);}
+.opt:hover::before,.opt:hover::after{opacity:1;}
+.ic{width:44px;height:44px;margin:0 auto 10px;color:var(--laterite);}
+.feature{text-align:center;}
+.feature h3{font-size:1.05rem;margin-bottom:6px;}
+
+table{width:100%;border-collapse:collapse;margin-top:12px;background:#fff;border:1px solid var(--line);}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem;}
+th{background:var(--blueprint);color:var(--chalk);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;
+   font-weight:700;font-family:'Noto Sans',sans-serif;}
+tr:hover td{background:#faf1ec;}
+td .rate,td.rowcost{font-family:'IBM Plex Mono',monospace;}
+
+input,select,textarea{width:100%;padding:11px;margin:6px 0 14px;border:1px solid var(--line);border-radius:3px;
+                       font-size:1rem;font-family:'Noto Sans','Noto Sans Telugu',sans-serif;background:#fff;color:var(--ink);}
+label{font-weight:700;font-size:.85rem;letter-spacing:.02em;text-transform:uppercase;color:var(--blueprint);}
+.flash{background:#fdeee7;border:1px solid var(--laterite-bright);color:var(--laterite);padding:10px 14px;
+      border-radius:3px;margin-bottom:14px;font-weight:600;}
+
+.total{position:relative;background:var(--blueprint);color:var(--chalk);padding:20px 22px;border-radius:3px;
+      font-size:1.3rem;font-weight:700;margin-top:14px;font-family:'IBM Plex Mono',monospace;}
+.total::after{content:"EST.";position:absolute;top:-9px;right:14px;background:var(--laterite);color:var(--chalk);
+             font-family:'Big Shoulders Display',sans-serif;font-size:.65rem;letter-spacing:.1em;padding:2px 8px;}
+.total span{color:var(--laterite-bright);}
+
+footer{background:var(--blueprint);color:var(--chalk);text-align:center;padding:20px;font-size:.85rem;
+      border-top:2px dashed rgba(246,243,234,.35);}
+footer a{color:var(--laterite-bright);text-decoration:none;}
+
+.hero{background:var(--blueprint);color:var(--chalk);padding:0;overflow:hidden;position:relative;}
+.hero-inner{max-width:1050px;margin:0 auto;padding:56px 5% 44px;display:grid;grid-template-columns:1.1fr 1fr;gap:30px;align-items:center;}
+.hero h1{font-size:2.7rem;}
+.hero p{margin:14px 0 26px;font-size:1.05rem;color:#cddcea;max-width:46ch;}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;}
+.blueprint-svg{width:100%;height:auto;}
+.blueprint-svg text{font-family:'IBM Plex Mono',monospace;}
+.callout-num{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+.badge{display:inline-block;background:#e7eef3;color:var(--blueprint);padding:3px 10px;border-radius:3px;
+      font-size:.78rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;}
+.badge.p{background:#fdeee7;color:var(--laterite);}
+@media(max-width:760px){.hero-inner{grid-template-columns:1fr;}.hero h1{font-size:2rem;}}
+@media(max-width:600px){nav a{margin-left:12px;}}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">🏗️ <a href="{{ url_for('home') }}" style="color:inherit;text-decoration:none">{{ company.split()[0] }}<span>{{ company.split()[1:]|join(' ') }}</span></a></div>
+  <a class="logo" href="{{ url_for('home') }}">
+    <span class="logo-mark">GC</span>
+    <span class="logo-word">{{ company.split()[0] }} <em>{{ company.split()[1:]|join(' ') }}</em></span>
+  </a>
   <nav>
     {% if session.get('user') %}
       <a href="{{ url_for('dashboard') }}">Home</a>
-      <a href="{{ url_for('appointment') }}">📅 Book Appointment</a>
+      <a href="{{ url_for('appointment') }}">Book Visit</a>
       <a href="{{ url_for('logout') }}">Logout ({{ session['user']['name'].split()[0] if session['user']['name'].split() else 'User' }})</a>
     {% elif session.get('is_admin') %}
       <a href="{{ url_for('admin') }}">Admin</a><a href="{{ url_for('logout') }}">Logout</a>
@@ -229,7 +294,7 @@ footer{background:var(--navy);color:#c9d6e2;text-align:center;padding:18px;font-
 {% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body }}
 </main>
-<footer>© 2026 {{ company }} · {{ area }} · 📞 {{ phone }} · <a href="https://wa.me/{{ wa }}" style="color:var(--orange)">WhatsApp</a></footer>
+<footer>© 2026 {{ company }} · {{ area }} · {{ phone }} · <a href="https://wa.me/{{ wa }}">WhatsApp</a></footer>
 </body></html>
 """
 
@@ -244,20 +309,71 @@ def page(body_tpl, **ctx):
 def home():
     return page("""
 <div class="hero">
-  <h1>{{ cname }}</h1>
-  <p>{{ tagline }} · <b>{{ tagline_te }}</b><br>
-  Transparent per-sqft pricing for renovation & new construction across Telangana.</p>
-  <a class="btn" href="{{ url_for('signup') }}">Get Instant Estimate →</a>
-  <a class="btn btn-wa" href="https://wa.me/{{ wa }}?text=Hi, I want a construction estimate">💬 WhatsApp Us</a>
+  <div class="hero-inner">
+    <div>
+      <h1>{{ cname }}</h1>
+      <p>{{ tagline }} · <b>{{ tagline_te }}</b><br>
+      Every quote is measured, not guessed — transparent per-sqft rates for renovation
+      and new construction across Telangana.</p>
+      <div class="hero-cta">
+        <a class="btn" href="{{ url_for('signup') }}">Get Instant Estimate →</a>
+        <a class="btn btn-wa" href="https://wa.me/{{ wa }}?text=Hi, I want a construction estimate">WhatsApp Us</a>
+      </div>
+    </div>
+    <svg class="blueprint-svg" viewBox="0 0 360 230" role="img" aria-label="Blueprint elevation of a house with a sample estimate of 1,850 square feet">
+      <path d="M40 170 L40 95 L180 25 L320 95 L320 170 Z" fill="none" stroke="var(--chalk)" stroke-width="2"/>
+      <rect x="160" y="128" width="40" height="42" fill="none" stroke="var(--chalk)" stroke-width="1.5"/>
+      <rect x="70"  y="108" width="30" height="30" fill="none" stroke="var(--chalk)" stroke-width="1.4"/>
+      <rect x="260" y="108" width="30" height="30" fill="none" stroke="var(--chalk)" stroke-width="1.4"/>
+      <line x1="70" y1="123" x2="100" y2="123" stroke="var(--chalk)" stroke-width="1"/>
+      <line x1="260" y1="123" x2="290" y2="123" stroke="var(--chalk)" stroke-width="1"/>
+      <line x1="40" y1="190" x2="320" y2="190" stroke="var(--chalk)" stroke-width="1" stroke-dasharray="4 3" opacity=".6"/>
+      <line x1="40" y1="182" x2="40" y2="198" stroke="var(--chalk)" stroke-width="1" opacity=".6"/>
+      <line x1="320" y1="182" x2="320" y2="198" stroke="var(--chalk)" stroke-width="1" opacity=".6"/>
+      <text x="180" y="212" fill="var(--chalk)" font-size="11" text-anchor="middle" opacity=".8">42 FT WIDE</text>
+      <line x1="340" y1="25" x2="340" y2="170" stroke="var(--laterite-bright)" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="332" y1="25" x2="348" y2="25" stroke="var(--laterite-bright)" stroke-width="1.5"/>
+      <line x1="332" y1="170" x2="348" y2="170" stroke="var(--laterite-bright)" stroke-width="1.5"/>
+      <g transform="translate(180,90)">
+        <rect x="-58" y="-20" width="116" height="40" fill="var(--laterite)" rx="2"/>
+        <text x="0" y="-2" class="callout-num" fill="var(--chalk)" font-size="16" text-anchor="middle" data-count-to="1850">0</text>
+        <text x="0" y="14" fill="var(--chalk)" font-size="9" text-anchor="middle" opacity=".85">SQ FT SAMPLE ESTIMATE</text>
+      </g>
+    </svg>
+  </div>
 </div>
 <div class="wrap">
-  <h2 style="text-align:center">Why choose us? / మమ్మల్ని ఎందుకు ఎంచుకోవాలి?</h2>
+  <h2 style="text-align:center">How the estimate is built / అంచనా ఎలా తయారవుతుంది</h2>
   <div class="grid2">
-    <div class="card"><div class="ic" style="font-size:2rem">💰</div><h3>Transparent Pricing</h3><p class="te">Room-wise per-sqft rates. No hidden costs. Today's Telangana market prices.</p></div>
-    <div class="card"><div class="ic" style="font-size:2rem">👷</div><h3>20+ Years Experience</h3><p class="te">Trusted builder serving all of Telangana — homes, apartments & commercial.</p></div>
-    <div class="card"><div class="ic" style="font-size:2rem">📅</div><h3>Free Site Visit</h3><p class="te">Book an appointment online, we visit your site and give an exact quote free.</p></div>
+    <div class="card feature">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 4h10M6 8h8M6 4c4.5 0 4.5 4.5 0 4.5H6L15 18"/></svg></div>
+      <h3>Room-wise, per-sqft</h3><p class="te">Every rate is published up front — bedroom, bathroom, kitchen, hall. No hidden line items after the site visit.</p>
+    </div>
+    <div class="card feature">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16a9 9 0 0 1 18 0"/><path d="M2 16h20"/><path d="M12 7V5"/></svg></div>
+      <h3>20+ Years on Telangana Sites</h3><p class="te">Homes, apartments and commercial builds across the state — rates tuned to today's local market, not a national average.</p>
+    </div>
+    <div class="card feature">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/><path d="m8.5 14 2 2 4-4"/></svg></div>
+      <h3>Free Site Measurement</h3><p class="te">Book a visit online — we measure on site and turn your estimate into an exact quote at no charge.</p>
+    </div>
   </div>
-</div>""", cname=COMPANY_NAME, tagline=COMPANY_TAGLINE, tagline_te=COMPANY_TAGLINE_TE, wa=WHATSAPP)
+</div>
+<script>
+(function(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var el = document.querySelector('[data-count-to]');
+  if (!el) return;
+  var target = parseInt(el.getAttribute('data-count-to'), 10), start = null, dur = 900;
+  function step(ts){
+    if (!start) start = ts;
+    var p = Math.min(1, (ts - start) / dur);
+    el.textContent = Math.round(p * target).toLocaleString('en-IN');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+</script>""", cname=COMPANY_NAME, tagline=COMPANY_TAGLINE, tagline_te=COMPANY_TAGLINE_TE, wa=WHATSAPP)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -320,20 +436,22 @@ def logout():
 def dashboard():
     return page("""
 <div class="wrap">
-<h1>Welcome, {{ session['user']['name'] }} 👋</h1>
+<h1>Welcome, {{ session['user']['name'] }}</h1>
 <p class="te">మీకు ఏ సేవ కావాలి? — What would you like to do?</p>
 <div class="grid2">
   <a class="card opt" href="{{ url_for('renovation') }}">
-    <div class="ic">🔨</div><h2>Option 1: Renovation</h2>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l4 4-7 7-4-4z"/><path d="M4 20l3-3"/></svg></div>
+    <h2>Option 1: Renovation</h2>
     <p class="te">పునరుద్ధరణ — Room-wise renovation cost for house or commercial property. Today's Telangana rates per sqft.</p>
   </a>
   <a class="card opt" href="{{ url_for('build_new') }}">
-    <div class="ic">🏠</div><h2>Option 2: Build New</h2>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg></div>
+    <h2>Option 2: Build New</h2>
     <p class="te">కొత్త నిర్మాణం — New residential or commercial construction cost estimate per sqft.</p>
   </a>
 </div>
 <div style="text-align:center;margin-top:30px">
-  <a class="btn btn-wa" href="{{ url_for('appointment') }}">📅 Schedule an Appointment / అపాయింట్‌మెంట్ బుక్ చేయండి</a>
+  <a class="btn btn-wa" href="{{ url_for('appointment') }}">Schedule an Appointment / అపాయింట్‌మెంట్ బుక్ చేయండి</a>
 </div>
 </div>""")
 
@@ -345,17 +463,17 @@ def renovation():
     if ptype not in ("residential", "commercial"):
         return page("""
 <div class="wrap">
-<h1>🔨 Renovation</h1><p class="te">Is the renovation for a House or a Commercial property?</p>
+<h1>Renovation</h1><p class="te">Is the renovation for a House or a Commercial property?</p>
 <div class="grid2">
   <a class="card opt" href="{{ url_for('renovation', type='residential') }}">
-    <div class="ic">🏡</div><h2>House / ఇల్లు</h2><p class="te">Bedroom, bathroom, kitchen, hall — room-wise rates.</p></a>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg></div><h2>House / ఇల్లు</h2><p class="te">Bedroom, bathroom, kitchen, hall — room-wise rates.</p></a>
   <a class="card opt" href="{{ url_for('renovation', type='commercial') }}">
-    <div class="ic">🏢</div><h2>Commercial / వాణిజ్య</h2><p class="te">Office, shop, washroom, pantry — commercial rates.</p></a>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/></svg></div><h2>Commercial / వాణిజ్య</h2><p class="te">Office, shop, washroom, pantry — commercial rates.</p></a>
 </div></div>""")
     rooms = RENOVATION_PRICES[ptype]
     return page("""
 <div class="wrap">
-<h1>🔨 {{ 'House' if ptype=='residential' else 'Commercial' }} Renovation — Telangana Rates (July 2026)</h1>
+<h1>{{ 'House' if ptype=='residential' else 'Commercial' }} Renovation — Telangana Rates (July 2026)</h1>
 <p class="te">Enter area in sqft for each room you want to renovate. మీరు పునరుద్ధరించాలనుకునే గదుల విస్తీర్ణం నమోదు చేయండి.</p>
 <form method="post" action="{{ url_for('save_estimate') }}" oninput="calc()">
 <input type="hidden" name="service" value="Renovation">
@@ -373,8 +491,8 @@ def renovation():
 </table>
 <div class="total">Estimated Total / మొత్తం అంచనా: <span id="tot">₹0</span></div>
 <p class="te" style="margin-top:8px">* Indicative estimate at current Telangana market rates. Final quote after free site visit.</p>
-<button class="btn" style="margin-top:14px">💾 Save Estimate</button>
-<a class="btn btn-wa" style="margin-top:14px" href="{{ url_for('appointment') }}">📅 Book Free Site Visit</a>
+<button class="btn" style="margin-top:14px">Save Estimate</button>
+<a class="btn btn-wa" style="margin-top:14px" href="{{ url_for('appointment') }}">Book Free Site Visit</a>
 </form>
 </div>
 <script>
@@ -392,18 +510,18 @@ def build_new():
     if ptype not in ("residential", "commercial"):
         return page("""
 <div class="wrap">
-<h1>🏠 Build New</h1><p class="te">What do you want to build? మీరు ఏమి నిర్మించాలనుకుంటున్నారు?</p>
+<h1>Build New</h1><p class="te">What do you want to build? మీరు ఏమి నిర్మించాలనుకుంటున్నారు?</p>
 <div class="grid2">
   <a class="card opt" href="{{ url_for('build_new', type='residential') }}">
-    <div class="ic">🏡</div><h2>New Residential</h2><p class="te">Independent house, villa, duplex — full construction.</p></a>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg></div><h2>New Residential</h2><p class="te">Independent house, villa, duplex — full construction.</p></a>
   <a class="card opt" href="{{ url_for('build_new', type='commercial') }}">
-    <div class="ic">🏢</div><h2>New Commercial</h2><p class="te">Shops, offices, function halls, warehouses.</p></a>
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/></svg></div><h2>New Commercial</h2><p class="te">Shops, offices, function halls, warehouses.</p></a>
 </div></div>""")
     tiers = BUILD_PRICES[ptype]
     rooms = RENOVATION_PRICES[ptype]
     return page("""
 <div class="wrap">
-<h1>🏠 New {{ 'Residential' if ptype=='residential' else 'Commercial' }} Construction — Telangana Rates (July 2026)</h1>
+<h1>New {{ 'Residential' if ptype=='residential' else 'Commercial' }} Construction — Telangana Rates (July 2026)</h1>
 <form method="post" action="{{ url_for('save_estimate') }}" oninput="calc()">
 <input type="hidden" name="service" value="Build New">
 <input type="hidden" name="ptype" value="{{ ptype }}">
@@ -424,8 +542,8 @@ def build_new():
 {% for key, r in rooms.items() %}<tr><td>{{ r.en }} <span class="te">({{ r.te }})</span></td><td>₹{{ r.rate }}</td></tr>{% endfor %}
 </table>
 <p class="te" style="margin-top:8px">* Package covers full structure + finishing. Final quote after free site visit & plan review.</p>
-<button class="btn" style="margin-top:14px">💾 Save Estimate</button>
-<a class="btn btn-wa" style="margin-top:14px" href="{{ url_for('appointment') }}">📅 Book Free Site Visit</a>
+<button class="btn" style="margin-top:14px">Save Estimate</button>
+<a class="btn btn-wa" style="margin-top:14px" href="{{ url_for('appointment') }}">Book Free Site Visit</a>
 </form>
 </div>
 <script>
@@ -468,12 +586,12 @@ def save_estimate():
                             datetime.now().strftime("%Y-%m-%d %H:%M")])
     return page("""
 <div class="wrap" style="max-width:640px"><div class="card" style="text-align:center">
-<div style="font-size:3rem">✅</div>
+<div class="ic" style="width:56px;height:56px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9"/></svg></div>
 <h1>Estimate Saved!</h1>
 <p class="te">{{ service }} ({{ ptype }}) — {{ sq }} sqft</p>
 <div class="total">Estimated Cost: <span>₹{{ cost|inr }}</span></div>
 <p style="margin:16px 0" class="te">Our team will review your estimate. Book a free site visit for an exact quote!</p>
-<a class="btn btn-wa" href="{{ url_for('appointment') }}">📅 Book Free Site Visit</a>
+<a class="btn btn-wa" href="{{ url_for('appointment') }}">Book Free Site Visit</a>
 <a class="btn btn-outline" href="{{ url_for('dashboard') }}">← Back to Home</a>
 </div></div>""", service=service, ptype=ptype.title(), sq=int(total_sqft), cost=total_cost)
 
@@ -497,14 +615,14 @@ def appointment():
                   f"Service: {f.get('service','')}, Date: {date_} {f.get('time','')}, Location: {loc}")
         return page("""
 <div class="wrap" style="max-width:640px"><div class="card" style="text-align:center">
-<div style="font-size:3rem">📅</div><h1>Appointment Booked!</h1>
+<div class="ic" style="width:56px;height:56px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/><path d="m8.5 14 2 2 4-4"/></svg></div><h1>Appointment Booked!</h1>
 <p class="te">మీ అపాయింట్‌మెంట్ నమోదైంది. We will call you at {{ phone }} to confirm.</p>
-<a class="btn btn-wa" href="https://wa.me/{{ wa }}?text={{ msg|urlencode }}">💬 Confirm on WhatsApp</a>
+<a class="btn btn-wa" href="https://wa.me/{{ wa }}?text={{ msg|urlencode }}">Confirm on WhatsApp</a>
 <a class="btn btn-outline" href="{{ url_for('dashboard') }}">← Back to Home</a>
 </div></div>""", phone=request.form["phone"], wa=WHATSAPP, msg=wa_msg)
     return page("""
 <div class="wrap" style="max-width:560px"><div class="card">
-<h1>📅 Schedule an Appointment</h1>
+<h1>Schedule an Appointment</h1>
 <p class="te">ఉచిత సైట్ విజిట్ — Free site visit & exact quotation</p>
 <form method="post">
 <label>Name</label><input name="name" value="{{ session['user']['name'] }}" required>
