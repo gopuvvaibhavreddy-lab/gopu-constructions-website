@@ -1,8 +1,8 @@
-# Gopu Constructions — Meta Ad Kit & Launch Guide
+# GVM Infra Developers — Meta Ad Kit & Launch Guide
 
 ## 1. Website name & domain recommendations
 
-**Recommended brand: Gopu Constructions** (family name = trust in the local market; easy to say in Telugu and English).
+**Brand: GVM Infra Developers**.
 
 | Rank | Domain | Approx. cost/yr | Why |
 |------|--------|-----------------|-----|
@@ -82,7 +82,7 @@ The site is one Python file — any beginner-friendly host works.
 
 ## 4. Step-by-step: launch the Meta ad
 
-1. **Create a Facebook Page** — facebook.com → Menu → Pages → Create: name "Gopu Constructions", category "Construction Company", add phone + website + a few photos of completed projects
+1. **Create a Facebook Page** — facebook.com → Menu → Pages → Create: name "GVM Infra Developers", category "Construction Company", add phone + website + a few photos of completed projects
 2. **Create an Instagram account** (optional but free reach) and link it to the Page in Page Settings
 3. Go to **adsmanager.facebook.com** → click **+ Create**
 4. **Objective:** choose **Leads** (for Ad 1) or **Engagement → WhatsApp** (for Ad 2)

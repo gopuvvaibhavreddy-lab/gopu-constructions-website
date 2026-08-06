@@ -1,6 +1,6 @@
 
 """
-Gopu Constructions - Telangana Construction & Renovation Website
+GVM Infra Developers - Telangana Construction & Renovation Website
 ================================================================
 Features: Sign up / Login, Renovation & Build-New cost estimators
 (residential + commercial, room-wise Telangana 2026 rates),
@@ -23,7 +23,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from openpyxl import Workbook, load_workbook
 
 # ----------------------------- CONFIG ---------------------------------
-COMPANY_NAME    = "Gopu Constructions"
+COMPANY_NAME    = "GVM Infra Developers"
 COMPANY_TAGLINE = "Building Telangana, One Home at a Time"
 COMPANY_TAGLINE_TE = "మీ కల ఇల్లు – మా బాధ్యత"
 PHONE           = "+91 8332899003"
@@ -232,8 +232,10 @@ h2{font-size:1.3rem;margin:24px 0 14px;color:var(--blueprint);}
 .feature{text-align:center;}
 .feature h3{font-size:1.05rem;margin-bottom:6px;}
 
-table{width:100%;border-collapse:collapse;margin-top:12px;background:#fff;border:1px solid var(--line);}
-th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem;}
+.table-wrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);-webkit-overflow-scrolling:touch;}
+table{width:100%;min-width:520px;border-collapse:collapse;background:#fff;}
+.table-wrap table{margin-top:0;border:none;}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem;white-space:nowrap;}
 th{background:var(--blueprint);color:var(--chalk);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;
    font-weight:700;font-family:'Noto Sans',sans-serif;}
 tr:hover td{background:#faf1ec;}
@@ -267,8 +269,22 @@ footer a{color:var(--laterite-bright);text-decoration:none;}
 .badge{display:inline-block;background:#e7eef3;color:var(--blueprint);padding:3px 10px;border-radius:3px;
       font-size:.78rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;}
 .badge.p{background:#fdeee7;color:var(--laterite);}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--blueprint);margin:0;}
+.testimonial .stars{color:var(--laterite);font-family:'IBM Plex Mono',monospace;letter-spacing:.1em;font-size:1rem;}
+.testimonial p.quote{margin:10px 0 14px;font-style:italic;}
+.testimonial .who{font-size:.85rem;color:var(--mut);}
 @media(max-width:760px){.hero-inner{grid-template-columns:1fr;}.hero h1{font-size:2rem;}}
-@media(max-width:600px){nav a{margin-left:12px;}}
+@media(max-width:600px){
+  nav{width:100%;justify-content:flex-start;}
+  nav a{margin-left:0;margin-right:16px;}
+}
+@media(max-width:480px){
+  .wrap{padding:28px 5%;}
+  .card{padding:18px;}
+  .hero-inner{padding:40px 5% 32px;}
+  .grid2{grid-template-columns:1fr;gap:16px;}
+  .total{font-size:1.1rem;padding:16px 18px;}
+}
 </style>
 </head>
 <body>
@@ -359,6 +375,37 @@ def home():
     </div>
   </div>
 </div>
+<div class="wrap">
+  <h2 style="text-align:center">What Customers Say / మా వినియోగదారుల మాటల్లో</h2>
+  <p class="te" style="text-align:center;margin-top:-6px">Sample reviews shown below — replace with real customer testimonials.</p>
+  <section id="testimonials" class="grid2" aria-label="Customer testimonials">
+    <div class="card testimonial">
+      <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+      <p class="quote">"Room-wise pricing meant zero surprises. Our kitchen renovation in Hyderabad came in exactly at quote."</p>
+      <p class="who"><b>Priya R.</b> · Hyderabad</p>
+    </div>
+    <div class="card testimonial">
+      <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+      <p class="quote">"Booked the free site visit through the app and had a firm quote for our new house in two days."</p>
+      <p class="who"><b>Srinivas M.</b> · Warangal</p>
+    </div>
+    <div class="card testimonial">
+      <div class="stars" aria-label="4 out of 5 stars">★★★★☆</div>
+      <p class="quote">"Good communication throughout our shop renovation. Telugu support made it easy for my father to follow along too."</p>
+      <p class="who"><b>Anitha K.</b> · Karimnagar</p>
+    </div>
+    <div class="card testimonial">
+      <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+      <p class="quote">"Transparent per-sqft rates for our office build-out — no hidden line items after the site visit like other contractors quoted."</p>
+      <p class="who"><b>Rahul D.</b> · Nizamabad</p>
+    </div>
+    <div class="card testimonial">
+      <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+      <p class="quote">"WhatsApp booking was so convenient. They measured our full house and matched the online estimate almost exactly."</p>
+      <p class="who"><b>Lakshmi V.</b> · Khammam</p>
+    </div>
+  </section>
+</div>
 <script>
 (function(){
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -388,7 +435,7 @@ def signup():
         if find_user(email):
             flash("An account with this email already exists. Please login.")
             return redirect(url_for("login"))
-        xl_append("Users", [name, email, phone, generate_password_hash(pw),
+        xl_append("Users", [name, email, phone, generate_password_hash(pw, method="pbkdf2:sha256"),
                             datetime.now().strftime("%Y-%m-%d %H:%M")])
         session["user"] = {"name": name, "email": email, "phone": phone}
         return redirect(url_for("dashboard"))
@@ -478,7 +525,7 @@ def renovation():
 <form method="post" action="{{ url_for('save_estimate') }}" oninput="calc()">
 <input type="hidden" name="service" value="Renovation">
 <input type="hidden" name="ptype" value="{{ ptype }}">
-<table>
+<div class="table-wrap"><table>
 <tr><th>Room / గది</th><th>Rate (₹/sqft)</th><th>Area (sqft)</th><th>Cost (₹)</th></tr>
 {% for key, r in rooms.items() %}
 <tr>
@@ -488,7 +535,7 @@ def renovation():
   <td class="rowcost">₹0</td>
 </tr>
 {% endfor %}
-</table>
+</table></div>
 <div class="total">Estimated Total / మొత్తం అంచనా: <span id="tot">₹0</span></div>
 <p class="te" style="margin-top:8px">* Indicative estimate at current Telangana market rates. Final quote after free site visit.</p>
 <button class="btn" style="margin-top:14px">Save Estimate</button>
@@ -537,10 +584,10 @@ def build_new():
 <div class="total">Estimated Total / మొత్తం అంచనా: <span id="tot">₹0</span></div>
 </div>
 <h2>Room-wise finishing rates (same as renovation rates)</h2>
-<table>
+<div class="table-wrap"><table>
 <tr><th>Room / గది</th><th>Rate (₹/sqft)</th></tr>
 {% for key, r in rooms.items() %}<tr><td>{{ r.en }} <span class="te">({{ r.te }})</span></td><td>₹{{ r.rate }}</td></tr>{% endfor %}
-</table>
+</table></div>
 <p class="te" style="margin-top:8px">* Package covers full structure + finishing. Final quote after free site visit & plan review.</p>
 <button class="btn" style="margin-top:14px">Save Estimate</button>
 <a class="btn btn-wa" style="margin-top:14px" href="{{ url_for('appointment') }}">Book Free Site Visit</a>
@@ -678,39 +725,39 @@ def admin():
 <div class="wrap">
 <h1>🛠️ Admin Dashboard</h1>
 <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
-  <div class="card" style="text-align:center"><h2>{{ users|length }}</h2><p class="te">Customers</p></div>
-  <div class="card" style="text-align:center"><h2>{{ ests|length }}</h2><p class="te">Estimates</p></div>
-  <div class="card" style="text-align:center"><h2>{{ appts|length }}</h2><p class="te">Appointments</p></div>
-  <div class="card" style="text-align:center"><h2>₹{{ tv|inr }}</h2><p class="te">Pipeline Value</p></div>
+  <div class="card" style="text-align:center"><div class="stat-num">{{ users|length }}</div><p class="te">Customers</p></div>
+  <div class="card" style="text-align:center"><div class="stat-num">{{ ests|length }}</div><p class="te">Estimates</p></div>
+  <div class="card" style="text-align:center"><div class="stat-num">{{ appts|length }}</div><p class="te">Appointments</p></div>
+  <div class="card" style="text-align:center"><div class="stat-num">₹{{ tv|inr }}</div><p class="te">Pipeline Value</p></div>
 </div>
 <div style="margin:18px 0"><a class="btn" href="{{ url_for('download_excel') }}">⬇️ Download Excel (all data)</a></div>
 
 <h2>📅 Appointments</h2>
-<table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Service</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th></tr>
+<div class="table-wrap"><table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Service</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th></tr>
 {% for a in appts|reverse %}<tr><td>{{ a[0] }}</td><td>{{ a[1] }}</td><td><a href="tel:{{ a[2] }}">{{ a[2] }}</a></td>
 <td>{{ a[4] }}</td><td>{{ a[5] }}</td><td>{{ a[6] }}</td><td>{{ a[7] }}</td>
 <td><span class="badge {{ 'p' if a[9]=='Pending' else '' }}">{{ a[9] }}</span></td></tr>
-{% else %}<tr><td colspan="8" class="te">No appointments yet.</td></tr>{% endfor %}</table>
+{% else %}<tr><td colspan="8" class="te">No appointments yet.</td></tr>{% endfor %}</table></div>
 
 <h2>💰 Estimates</h2>
-<table><tr><th>ID</th><th>Customer</th><th>Service</th><th>Type</th><th>Details</th><th>Sqft</th><th>Estimate</th><th>Date</th></tr>
+<div class="table-wrap"><table><tr><th>ID</th><th>Customer</th><th>Service</th><th>Type</th><th>Details</th><th>Sqft</th><th>Estimate</th><th>Date</th></tr>
 {% for e in ests|reverse %}<tr><td>{{ e[0] }}</td><td>{{ e[2] }}<br><span class="te">{{ e[1] }}</span></td>
-<td>{{ e[3] }}</td><td>{{ e[4] }}</td><td style="max-width:280px">{{ e[5] }}</td>
+<td>{{ e[3] }}</td><td>{{ e[4] }}</td><td style="max-width:280px;white-space:normal">{{ e[5] }}</td>
 <td>{{ e[6] }}</td><td><b>₹{{ e[7]|inr }}</b></td><td>{{ e[8] }}</td></tr>
-{% else %}<tr><td colspan="8" class="te">No estimates yet.</td></tr>{% endfor %}</table>
+{% else %}<tr><td colspan="8" class="te">No estimates yet.</td></tr>{% endfor %}</table></div>
 
 <h2>👥 Customers</h2>
-<table><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Signed Up</th></tr>
+<div class="table-wrap"><table><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Signed Up</th></tr>
 {% for u in users|reverse %}<tr><td>{{ u[0] }}</td><td>{{ u[1] }}</td><td>{{ u[2] }}</td>
 <td><a href="tel:{{ u[3] }}">{{ u[3] }}</a></td><td>{{ u[5] }}</td></tr>
-{% else %}<tr><td colspan="5" class="te">No customers yet.</td></tr>{% endfor %}</table>
+{% else %}<tr><td colspan="5" class="te">No customers yet.</td></tr>{% endfor %}</table></div>
 </div>""", users=users, ests=ests, appts=appts, tv=total_value)
 
 @app.route("/admin/download")
 @admin_required
 def download_excel():
     return send_file(EXCEL_FILE, as_attachment=True,
-                     download_name=f"gopu_constructions_data_{datetime.now():%Y%m%d}.xlsx")
+                     download_name=f"gvm_infra_developers_data_{datetime.now():%Y%m%d}.xlsx")
 
 # ------------------------------- MAIN ----------------------------------
 if __name__ == "__main__":

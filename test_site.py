@@ -1,4 +1,4 @@
-"""Automated test suite for the Gopu Constructions website. Run: python3 test_site.py"""
+"""Automated test suite for the GVM Infra Developers website. Run: python3 test_site.py"""
 import os, sys, tempfile
 
 os.chdir(tempfile.mkdtemp())  # fresh dir so a fresh data.xlsx is created
@@ -18,7 +18,10 @@ def t(name, got, want):
 c = app.test_client()
 
 # ---- public pages & guards
+home_html = c.get("/").data.decode()
 t("home", c.get("/").status_code, 200)
+t("home-has-testimonials-section", 'id="testimonials"' in home_html, True)
+t("home-testimonials-count", home_html.count('class="card testimonial"'), 5)
 t("404", c.get("/nope").status_code, 404)
 t("signup-page", c.get("/signup").status_code, 200)
 for p in ["/dashboard", "/renovation", "/build-new", "/appointment"]:
@@ -53,6 +56,11 @@ t("telugu-present", "పడక గది" in html, True)
 t("html-not-escaped", "&lt;tr&gt;" not in html and '<input type="number"' in html, True)
 t("home-html-not-escaped", "&lt;div" not in c.get("/").data.decode(), True)
 t("live-calc-script-present", "function calc()" in html, True)
+t("reno-table-wrapped", 'class="table-wrap"' in html, True)
+
+build_html = c.get("/build-new?type=residential").data.decode()
+t("build-new-page", c.get("/build-new?type=commercial").status_code, 200)
+t("build-new-table-wrapped", 'class="table-wrap"' in build_html, True)
 
 # ---- estimates
 r = c.post("/save-estimate", data=dict(service="Renovation", ptype="residential",
@@ -92,6 +100,7 @@ t("admin-shows-customer", "Ravi Kumar" in admin_html, True)
 t("admin-shows-estimate", "₹7,30,000" in admin_html, True)
 t("admin-shows-appt", "Warangal" in admin_html, True)
 t("xss-escaped", "<script>alert" not in admin_html, True)
+t("admin-tables-wrapped", admin_html.count('class="table-wrap"'), 3)
 t("excel-download", c.get("/admin/download").status_code, 200)
 
 # ---- excel integrity
