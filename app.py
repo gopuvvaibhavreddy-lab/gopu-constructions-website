@@ -34,7 +34,8 @@ ADMIN_PASSWORD  = os.environ.get("ADMIN_PASSWORD", "dev-admin-change-me")
 SECRET_KEY      = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 if ADMIN_PASSWORD == "dev-admin-change-me" or SECRET_KEY == "dev-secret-change-me":
     print("WARNING: ADMIN_PASSWORD/SECRET_KEY not set in environment — using insecure dev defaults.")
-EXCEL_FILE      = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.xlsx")
+DATA_DIR        = os.environ.get("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
+EXCEL_FILE      = os.path.join(DATA_DIR, "database.xlsx")
 
 # ------------------- TELANGANA 2026 PRICES (Rs / sqft) ----------------
 # Sources: NoBroker, Infralens, GharKaBudget, AECORD (July 2026 averages)
@@ -82,6 +83,7 @@ SHEETS = {
 
 def init_excel():
     if not os.path.exists(EXCEL_FILE):
+        os.makedirs(DATA_DIR, exist_ok=True)
         wb = Workbook()
         wb.remove(wb.active)
         for name, headers in SHEETS.items():
