@@ -13,6 +13,7 @@ Admin login:  admin / (see ADMIN_PASSWORD env var)
 """
 
 import os
+import secrets
 from datetime import datetime
 from threading import Lock
 from functools import wraps
@@ -21,6 +22,8 @@ from flask import (Flask, request, redirect, url_for, session,
                    render_template_string, send_file, flash)
 from werkzeug.security import generate_password_hash, check_password_hash
 from openpyxl import Workbook, load_workbook
+
+import security
 
 # ----------------------------- CONFIG ---------------------------------
 COMPANY_NAME    = "GVM Infra Developers"
@@ -72,6 +75,10 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 xl_lock = Lock()
 
+# Security headers, CSRF, hardened cookies, brute-force lockouts and the
+# malicious-activity email alerts all live in security.py.
+security.init_app(app)
+
 # --------------------------- EXCEL BACKEND ----------------------------
 SHEETS = {
     "Users":        ["ID", "Name", "Email", "Phone", "PasswordHash", "SignupDate"],
@@ -96,7 +103,9 @@ def xl_append(sheet, row):
         init_excel()  # self-heal if file was deleted
         wb = load_workbook(EXCEL_FILE)
         ws = wb[sheet]
-        row = [ws.max_row] + row  # auto ID
+        # Neutralise spreadsheet formula injection: a value like ="=HYPERLINK(...)"
+        # is harmless on the website but would execute when the workbook is opened.
+        row = [ws.max_row] + [security.spreadsheet_safe(v) for v in row]  # auto ID
         ws.append(row)
         wb.save(EXCEL_FILE)
         return row[0]
@@ -165,6 +174,7 @@ def inr(n):
     return ",".join(parts + [last3])
 
 app.jinja_env.filters["inr"] = inr
+app.jinja_env.filters["ist"] = security._ist
 app.jinja_env.globals["fkey"] = form_key
 
 # ----------------------------- TEMPLATES ------------------------------
@@ -441,12 +451,20 @@ def signup():
         email = request.form.get("email", "").strip().lower()
         phone = request.form.get("phone", "").strip()
         pw    = request.form.get("password", "")
-        if not name or "@" not in email or len(phone) < 10 or len(pw) < 6:
-            flash("Please fill all fields correctly (phone: 10+ digits, password: 6+ characters).")
+        if len(name) > 80 or len(email) > 120 or len(phone) > 20 or len(pw) > 200:
+            flash("Please shorten your details and try again.")
+            return redirect(url_for("signup"))
+        if not name or "@" not in email or len(phone) < 10 or len(pw) < 8:
+            flash("Please fill all fields correctly (phone: 10+ digits, password: 8+ characters).")
             return redirect(url_for("signup"))
         if find_user(email):
             flash("An account with this email already exists. Please login.")
             return redirect(url_for("login"))
+        # Counted only for real account creations, so a customer fumbling the
+        # form a few times never gets rate-limited.
+        if not security.signup_allowed():
+            flash("Too many accounts created from this connection. Please try again later.")
+            return redirect(url_for("signup"))
         xl_append("Users", [name, email, phone, generate_password_hash(pw, method="pbkdf2:sha256"),
                             datetime.now().strftime("%Y-%m-%d %H:%M")])
         session["user"] = {"name": name, "email": email, "phone": phone}
@@ -455,9 +473,10 @@ def signup():
 <div class="wrap" style="max-width:460px"><div class="card">
 <h1>Sign Up</h1><p class="te">ఖాతా సృష్టించండి — free instant estimates</p>
 <form method="post">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <label>Full Name / పేరు</label><input name="name" required>
 <label>Email</label><input type="email" name="email" required>
-<label>Phone / ఫోన్</label><input name="phone" pattern="[0-9+ -]{10,15}" required>
+<label>Phone / ఫోన్</label><input name="phone" pattern="[0-9+ \-]{10,15}" maxlength="20" required>
 <label>Password</label><input type="password" name="password" minlength="6" required>
 <button class="btn" style="width:100%">Create Account</button>
 </form>
@@ -468,15 +487,20 @@ def signup():
 def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
+        if security.is_locked("loginfail"):
+            flash("Too many failed attempts. Please wait a few minutes and try again.")
+            return redirect(url_for("login"))
         u = find_user(email)
         if u and check_password_hash(u["pw"], request.form.get("password", "")):
             session["user"] = {"name": u["name"], "email": u["email"], "phone": u["phone"]}
             return redirect(url_for("dashboard"))
+        security.login_failed(email)
         flash("Invalid email or password.")
     return page("""
 <div class="wrap" style="max-width:460px"><div class="card">
 <h1>Login</h1><p class="te">లాగిన్ చేయండి</p>
 <form method="post">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <label>Email</label><input type="email" name="email" required>
 <label>Password</label><input type="password" name="password" required>
 <button class="btn" style="width:100%">Login</button>
@@ -535,6 +559,7 @@ def renovation():
 <h1>{{ 'House' if ptype=='residential' else 'Commercial' }} Renovation — Telangana Rates (July 2026)</h1>
 <p class="te">Enter area in sqft for each room you want to renovate. మీరు పునరుద్ధరించాలనుకునే గదుల విస్తీర్ణం నమోదు చేయండి.</p>
 <form method="post" action="{{ url_for('save_estimate') }}" oninput="calc()">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <input type="hidden" name="service" value="Renovation">
 <input type="hidden" name="ptype" value="{{ ptype }}">
 <div class="table-wrap"><table>
@@ -582,6 +607,7 @@ def build_new():
 <div class="wrap">
 <h1>New {{ 'Residential' if ptype=='residential' else 'Commercial' }} Construction — Telangana Rates (July 2026)</h1>
 <form method="post" action="{{ url_for('save_estimate') }}" oninput="calc()">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <input type="hidden" name="service" value="Build New">
 <input type="hidden" name="ptype" value="{{ ptype }}">
 <div class="card">
@@ -638,7 +664,10 @@ def save_estimate():
         details.append(f"{tier} package: {int(sq)} sqft @ ₹{rate}/sqft")
     if total_sqft == 0:
         flash("Please enter at least one area in sqft.")
-        return redirect(request.referrer or url_for("dashboard"))
+        # Only bounce back to our own pages — request.referrer is attacker-supplied.
+        back = url_for("renovation" if service == "Renovation" else "build_new",
+                       type=ptype)
+        return redirect(back)
     u = session["user"]
     xl_append("Estimates", [u["email"], u["name"], service, ptype.title(),
                             "; ".join(details), int(total_sqft), int(total_cost),
@@ -684,6 +713,7 @@ def appointment():
 <h1>Schedule an Appointment</h1>
 <p class="te">ఉచిత సైట్ విజిట్ — Free site visit & exact quotation</p>
 <form method="post">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <label>Name</label><input name="name" value="{{ session['user']['name'] }}" required>
 <label>Phone</label><input name="phone" value="{{ session['user']['phone'] }}" required>
 <label>Service</label>
@@ -713,16 +743,28 @@ def server_error(e):
 @app.route("/admin-login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        if (request.form["username"] == ADMIN_USER
-                and request.form["password"] == ADMIN_PASSWORD):
+        if security.is_locked("adminfail"):
+            flash("Too many failed attempts. This connection is locked for 15 minutes.")
+            return redirect(url_for("admin_login"))
+        user = request.form.get("username", "")
+        pw   = request.form.get("password", "")
+        # compare_digest keeps the check constant-time so the password can't be
+        # recovered a character at a time by timing the response.
+        ok = (secrets.compare_digest(user, ADMIN_USER)
+              and secrets.compare_digest(pw, ADMIN_PASSWORD))
+        if ok:
             session.clear()
             session["is_admin"] = True
+            session.permanent = True
+            security.admin_login_ok()
             return redirect(url_for("admin"))
+        security.admin_login_failed(user)
         flash("Wrong admin credentials.")
     return page("""
 <div class="wrap" style="max-width:420px"><div class="card">
 <h1>🔐 Admin Login</h1>
 <form method="post">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <label>Username</label><input name="username" required>
 <label>Password</label><input type="password" name="password" required>
 <button class="btn" style="width:100%">Login</button>
@@ -733,6 +775,7 @@ def admin_login():
 def admin():
     users, ests, appts = xl_rows("Users"), xl_rows("Estimates"), xl_rows("Appointments")
     total_value = sum((r[7] or 0) for r in ests)
+    events = security.recent_events(40)
     return page("""
 <div class="wrap">
 <h1>🛠️ Admin Dashboard</h1>
@@ -763,7 +806,38 @@ def admin():
 {% for u in users|reverse %}<tr><td>{{ u[0] }}</td><td>{{ u[1] }}</td><td>{{ u[2] }}</td>
 <td><a href="tel:{{ u[3] }}">{{ u[3] }}</a></td><td>{{ u[5] }}</td></tr>
 {% else %}<tr><td colspan="5" class="te">No customers yet.</td></tr>{% endfor %}</table></div>
-</div>""", users=users, ests=ests, appts=appts, tv=total_value)
+
+<h2 id="security">🛡️ Security</h2>
+<div class="card">
+  <p class="te" style="margin-bottom:10px">
+    {% if alerts_on %}Email alerts are <b>ON</b> — suspicious activity is sent to {{ alert_to }}.
+    {% else %}Email alerts are <b>OFF</b>. Set ALERT_EMAIL, SMTP_USER and SMTP_PASS in
+    Render → Settings → Environment to start receiving them.{% endif %}
+  </p>
+  <form method="post" action="{{ url_for('test_alert') }}" style="margin:0">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="btn btn-outline">Send me a test alert</button>
+  </form>
+</div>
+<div class="table-wrap"><table><tr><th>When (IST)</th><th>Severity</th><th>Event</th><th>From IP</th><th>Detail</th></tr>
+{% for e in events %}<tr>
+<td>{{ e.at|ist }}</td>
+<td><span class="badge {{ 'p' if e.severity in ('high','critical') else '' }}">{{ e.severity }}</span></td>
+<td>{{ e.kind }}</td><td>{{ e.ip }}</td>
+<td style="max-width:320px;white-space:normal">{{ e.detail }}</td></tr>
+{% else %}<tr><td colspan="5" class="te">Nothing suspicious recorded since the last restart.</td></tr>{% endfor %}</table></div>
+</div>""", users=users, ests=ests, appts=appts, tv=total_value, events=events,
+           alerts_on=security.alerts_configured(), alert_to=security.ALERT_EMAIL)
+
+@app.route("/admin/test-alert", methods=["POST"])
+@admin_required
+def test_alert():
+    if security.send_test_alert():
+        flash(f"Test alert sent to {security.ALERT_EMAIL}. Check your inbox (and spam).")
+    else:
+        flash("Email is not configured yet — set ALERT_EMAIL, SMTP_USER and SMTP_PASS "
+              "in Render → Settings → Environment.")
+    return redirect(url_for("admin") + "#security")
 
 @app.route("/admin/download")
 @admin_required
@@ -773,4 +847,9 @@ def download_excel():
 
 # ------------------------------- MAIN ----------------------------------
 if __name__ == "__main__":
+    # The dev server speaks plain HTTP, so Secure cookies would never be sent
+    # back and login would silently fail. Production (gunicorn on Render) keeps
+    # them on; see SECURE_COOKIES in security.py.
+    app.config["SESSION_COOKIE_SECURE"] = False
+    print("Local dev: Secure cookies disabled (HTTP). Production keeps them ON.")
     app.run(host="0.0.0.0", port=5000, debug=False)

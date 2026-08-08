@@ -35,6 +35,44 @@ All of it is at the top of `app.py` in plain text — edit and restart.
 
 Full step-by-step instructions in **META-AD-AND-LAUNCH-GUIDE.md**.
 
+## Security & email alerts
+
+The site hardens itself and watches for attacks. Everything is detected and
+logged out of the box; to get **emails** when something suspicious happens, set
+these in Render → Settings → Environment:
+
+| Variable | Value |
+|---|---|
+| `ALERT_EMAIL` | the inbox that receives alerts |
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | your Gmail address |
+| `SMTP_PASS` | a **Gmail App Password** (16 chars) |
+
+Gmail rejects your normal password. Make an App Password at
+Google Account → Security → 2-Step Verification → App passwords.
+
+Then open **Admin → Security → "Send me a test alert"** to confirm delivery.
+
+**You get an email when:** someone tries to guess the admin password, your admin
+dashboard is logged into, repeated customer logins fail, the site is being
+scanned, one address floods it with requests, a form arrives without a valid
+CSRF token, or an injection payload (SQL / XSS / traversal / command) is spotted.
+
+Alerts are capped at 12/hour with a 30-minute cooldown per issue, so a scanner
+can't flood your inbox. The Admin → Security table always shows the full recent
+history, emailed or not.
+
+**Also hardened:** CSRF tokens on every form, `Secure`/`HttpOnly`/`SameSite`
+cookies, a Content-Security-Policy, HSTS, clickjacking and MIME-sniffing
+protection, a 256 KB request cap, 15-minute lockout after 5 bad admin logins,
+8-character minimum passwords, and formula-injection sanitising so a malicious
+name can't run code when you open `database.xlsx` in Excel.
+
+Counters are in-memory: they reset on restart, and they are not a substitute for
+a WAF. They are sized for a site this busy.
+
 ## Tests
 
-`python test_site.py` — 64 automated checks (signup, login, estimates, admin, Excel, security).
+`python test_site.py` — 107 automated checks (signup, login, estimates, admin,
+Excel, headers, CSRF, lockouts, injection detection, alerting).
