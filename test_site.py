@@ -4,18 +4,24 @@ import os, sys, re, tempfile
 os.chdir(tempfile.mkdtemp())  # fresh dir so a fresh data.xlsx is created
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ["SECURE_COOKIES"] = "0"   # the test client speaks plain HTTP
-import importlib, app as appmod, security
+import importlib, app as appmod, security, mailer
 appmod.EXCEL_FILE = os.path.join(os.getcwd(), "data.xlsx")
 appmod.init_excel()
 app = appmod.app
 app.config["TESTING"] = True
 app.config["SESSION_COOKIE_SECURE"] = False
 
-# Capture alerts instead of emailing them, and keep the log out of test output.
-SENT = []
+# Capture mail instead of sending it, and keep the log out of test output.
+SENT = []                       # security alert events
+MAILED = []                     # every EmailMessage handed to the transport
 security.ALERT_SENDER = SENT.append
+mailer.TRANSPORT = MAILED.append
 import logging
 logging.getLogger("gvm.security").setLevel(logging.CRITICAL)
+logging.getLogger("gvm.mailer").setLevel(logging.CRITICAL)
+
+def mail_to(addr):
+    return [m for m in MAILED if m["To"] == addr]
 
 P = F = 0
 def t(name, got, want):
@@ -219,6 +225,85 @@ t("no-low-severity-emails", all(e["severity"] != "low" for e in SENT), True)
 t("alert-body-renders", "From IP:" in appmod.security._body(SENT[0]), True)
 t("alerts-not-configured-in-tests", appmod.security.alerts_configured(), False)
 
+# ---- company email on the site
+home2 = c.get("/").data.decode()
+t("footer-shows-company-email", "vaibhavreddy@gvminfradevelopers.com" in home2, True)
+t("footer-email-is-mailto", 'href="mailto:vaibhavreddy@gvminfradevelopers.com"' in home2, True)
+t("footer-phone-is-tel", 'href="tel:+918332899003"' in home2, True)
+t("company-email-on-every-page", "vaibhavreddy@gvminfradevelopers.com" in c.get("/login").data.decode(), True)
+# hidden rather than shown broken if it is ever blanked out
+_saved = appmod.COMPANY_EMAIL
+appmod.COMPANY_EMAIL = ""
+t("blank-company-email-hides-link", "mailto:" not in c.get("/").data.decode(), True)
+appmod.COMPANY_EMAIL = _saved
+
+# ---- welcome email on signup
+import time
+c.get("/logout")
+MAILED.clear()
+# earlier tests already created accounts; start these from a clean per-IP count
+security._hits.clear()
+r = post("/signup", data=dict(name="Anjali Rao", email="anjali@test.com",
+                              phone="9123456780", password="welcome123"))
+t("welcome-signup-ok", r.status_code, 302)
+time.sleep(0.5)                       # daemon thread hands off to the fake transport
+wm = mail_to("anjali@test.com")
+t("welcome-email-sent", len(wm), 1)
+t("welcome-subject", "Welcome to GVM Infra Developers" in wm[0]["Subject"], True)
+t("welcome-reply-to-company", wm[0]["Reply-To"], "vaibhavreddy@gvminfradevelopers.com")
+t("welcome-from-has-company-name", "GVM Infra Developers" in wm[0]["From"], True)
+t("welcome-is-multipart-text-and-html", wm[0].is_multipart(), True)
+_bodies = "".join(p.get_content() for p in wm[0].walk() if p.get_content_type().startswith("text/"))
+t("welcome-greets-by-name", "Anjali Rao" in _bodies, True)
+t("welcome-has-telugu", "మీకు స్వాగతం" in _bodies, True)
+t("welcome-has-site-link", "gvminfradevelopers.com" in _bodies, True)
+t("welcome-has-whatsapp", "wa.me/918332899003" in _bodies, True)
+t("welcome-shows-company-email", "vaibhavreddy@gvminfradevelopers.com" in _bodies, True)
+
+# a name containing HTML must not land unescaped in the HTML part
+MAILED.clear()
+c.get("/logout")
+post("/signup", data=dict(name="<b>Bold</b> Ravi", email="htmlname@test.com",
+                          phone="9123456781", password="welcome123"))
+time.sleep(0.5)
+_html = [p.get_content() for p in mail_to("htmlname@test.com")[0].walk()
+         if p.get_content_type() == "text/html"][0]
+t("welcome-html-escapes-name", "<b>Bold</b>" not in _html, True)
+t("welcome-html-keeps-name-text", "&lt;b&gt;Bold&lt;/b&gt;" in _html, True)
+
+# signup must still succeed when mail is broken
+def _boom(msg):
+    raise RuntimeError("SMTP down")
+mailer.TRANSPORT = _boom
+c.get("/logout")
+t("signup-survives-mail-failure",
+  post("/signup", data=dict(name="Mail Down", email="maildown@test.com",
+                            phone="9123456782", password="welcome123")).status_code, 302)
+time.sleep(0.4)
+t("user-saved-despite-mail-failure", appmod.find_user("maildown@test.com") is not None, True)
+mailer.TRANSPORT = MAILED.append
+
+# no welcome mail for a rejected signup
+MAILED.clear()
+c.get("/logout")
+post("/signup", data=dict(name="Bad", email="nope", phone="1", password="short"))
+time.sleep(0.3)
+t("no-welcome-for-invalid-signup", len(MAILED), 0)
+
+# ---- signup rate limit permits exactly SIGNUP_LIMIT accounts per window
+security._hits.clear()
+LIM = appmod.security.SIGNUP_LIMIT[0]
+made = 0
+for i in range(LIM + 2):
+    c.get("/logout")
+    post("/signup", data=dict(name=f"Rate {i}", email=f"rate{i}@test.com",
+                              phone="9000000000", password="welcome123"))
+    if appmod.find_user(f"rate{i}@test.com"):
+        made += 1
+t("signup-limit-allows-exactly-limit", made, LIM)
+t("signup-abuse-alert-raised", "signup_abuse" in kinds(), True)
+security._hits.clear()
+
 # ---- no SyntaxWarnings (an invalid \escape in a template string is a real bug:
 #      it silently changes the HTML and breaks in a future Python)
 import warnings, py_compile, tempfile as _tf
@@ -231,7 +316,11 @@ signup_html = c.get("/signup").data.decode()
 t("phone-pattern-escapes-hyphen", r'pattern="[0-9+ \-]{10,15}"' in signup_html, True)
 
 # ---- security: admin dashboard shows the log
+# the signup tests above logged out, so sign back in as admin first
+security._locks_until.clear()
+post("/admin-login", data=dict(username="admin", password=appmod.ADMIN_PASSWORD))
 admin_html2 = c.get("/admin").data.decode()
+t("admin-reauth-ok", c.get("/admin").status_code, 200)
 t("admin-has-security-section", 'id="security"' in admin_html2, True)
 t("admin-lists-events", "admin_bruteforce" in admin_html2, True)
 t("admin-shows-alert-status", "Email alerts are" in admin_html2, True)

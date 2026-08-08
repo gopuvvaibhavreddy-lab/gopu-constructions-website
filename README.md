@@ -35,6 +35,23 @@ All of it is at the top of `app.py` in plain text — edit and restart.
 
 Full step-by-step instructions in **META-AD-AND-LAUNCH-GUIDE.md**.
 
+## Customer welcome email
+
+When someone signs up, they get a bilingual (English + Telugu) welcome email in
+your brand colours: what they can do next, a button to the estimator, your
+phone, WhatsApp and company email. Replies go to `COMPANY_EMAIL`.
+
+It needs the same SMTP settings as the security alerts (below). Until those are
+set, signup works exactly as before and no mail is attempted. Sending happens on
+a background thread and failures are swallowed, so a mail problem can never
+break or slow down a signup.
+
+For the best deliverability set `SMTP_USER` to a mailbox on your own domain
+(Google Workspace), so the email comes **from** `@gvminfradevelopers.com` rather
+than a `gmail.com` address. Gmail only lets you send as the account you log in
+as, which is why `From` follows `SMTP_USER` and your company address goes in
+`Reply-To`.
+
 ## Security & email alerts
 
 The site hardens itself and watches for attacks. Everything is detected and

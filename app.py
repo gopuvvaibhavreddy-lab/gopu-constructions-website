@@ -24,6 +24,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from openpyxl import Workbook, load_workbook
 
 import security
+import mailer
 
 # ----------------------------- CONFIG ---------------------------------
 COMPANY_NAME    = "GVM Infra Developers"
@@ -32,6 +33,8 @@ COMPANY_TAGLINE_TE = "మీ కల ఇల్లు – మా బాధ్య�
 PHONE           = "+91 8332899003"
 WHATSAPP        = "918332899003"          # digits only, for wa.me links
 SERVICE_AREA    = "All of Telangana"
+# Company address shown on the site and used as Reply-To on customer email.
+COMPANY_EMAIL   = os.environ.get("COMPANY_EMAIL", "vaibhavreddy@gvminfradevelopers.com")
 ADMIN_USER      = "admin"
 ADMIN_PASSWORD  = os.environ.get("ADMIN_PASSWORD", "dev-admin-change-me")
 SECRET_KEY      = os.environ.get("SECRET_KEY", "dev-secret-change-me")
@@ -273,7 +276,10 @@ label{font-weight:700;font-size:.85rem;letter-spacing:.02em;text-transform:upper
 footer{background:var(--blueprint);color:var(--chalk);text-align:center;padding:24px 20px;font-size:.85rem;
       border-top:2px dashed rgba(246,243,234,.35);}
 footer a{color:var(--laterite-bright);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
 .footer-mark{height:44px;width:auto;display:block;margin:0 auto 12px;opacity:.9;}
+.fbr{display:none;}
+@media(max-width:600px){.fbr{display:inline;}}
 
 .hero{background:var(--blueprint);color:var(--chalk);padding:0;overflow:hidden;position:relative;}
 .hero-inner{max-width:1050px;margin:0 auto;padding:56px 5% 44px;display:grid;grid-template-columns:1.1fr 1fr;gap:30px;align-items:center;}
@@ -332,7 +338,10 @@ footer a{color:var(--laterite-bright);text-decoration:none;}
 </main>
 <footer>
 <img class="footer-mark" src="{{ url_for('static', filename='logo-mark.png') }}" alt="" aria-hidden="true">
-© 2026 {{ company }} · {{ area }} · {{ phone }} · <a href="https://wa.me/{{ wa }}">WhatsApp</a></footer>
+© 2026 {{ company }} · {{ area }}<br class="fbr">
+<a href="tel:{{ phone|replace(' ','') }}">{{ phone }}</a> ·
+{% if email %}<a href="mailto:{{ email }}">{{ email }}</a> · {% endif %}
+<a href="https://wa.me/{{ wa }}">WhatsApp</a></footer>
 </body></html>
 """
 
@@ -340,7 +349,8 @@ def page(body_tpl, **ctx):
     from markupsafe import Markup
     body = Markup(render_template_string(body_tpl, **ctx))  # already escaped by Jinja
     return render_template_string(BASE, body=body, company=COMPANY_NAME,
-                                  phone=PHONE, wa=WHATSAPP, area=SERVICE_AREA)
+                                  phone=PHONE, wa=WHATSAPP, area=SERVICE_AREA,
+                                  email=COMPANY_EMAIL)
 
 # ------------------------------ ROUTES --------------------------------
 @app.route("/")
@@ -468,6 +478,9 @@ def signup():
         xl_append("Users", [name, email, phone, generate_password_hash(pw, method="pbkdf2:sha256"),
                             datetime.now().strftime("%Y-%m-%d %H:%M")])
         session["user"] = {"name": name, "email": email, "phone": phone}
+        # Greeting email. Sent on a background thread, so a slow or misconfigured
+        # SMTP server can never delay or fail the signup itself.
+        mailer.send_welcome(email, name)
         return redirect(url_for("dashboard"))
     return page("""
 <div class="wrap" style="max-width:460px"><div class="card">

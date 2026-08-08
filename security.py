@@ -31,27 +31,23 @@ alerting on this size of site; it is not a substitute for a WAF.
 
 import os
 import re
-import smtplib
 import threading
 import logging
+import secrets
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
-from email.utils import formatdate
 
 from flask import request, session, abort, g
 from werkzeug.middleware.proxy_fix import ProxyFix
-import secrets
+
+import mailer
 
 log = logging.getLogger("gvm.security")
 
 # ----------------------------- CONFIG ---------------------------------
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "").strip()
-SMTP_HOST   = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
-SMTP_PORT   = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER   = os.environ.get("SMTP_USER", "").strip()
-SMTP_PASS   = os.environ.get("SMTP_PASS", "")
 SITE_NAME   = os.environ.get("SITE_NAME", "GVM Infra Developers")
+# SMTP host/port/user/pass live in mailer.py — one place, shared with customer mail.
 
 # Hardened cookies need HTTPS. Render serves HTTPS; plain `python app.py` does
 # not, so the dev server in app.py turns this off for localhost.
@@ -283,31 +279,17 @@ def _body(ev):
 
 
 def _smtp_send(ev):
-    if not (ALERT_EMAIL and SMTP_USER and SMTP_PASS):
-        log.info("security alert not emailed (SMTP not configured): %s", ev["kind"])
+    """Hand an alert to the shared mailer (same SMTP settings as customer mail)."""
+    if not ALERT_EMAIL:
+        log.info("security alert not emailed (ALERT_EMAIL unset): %s", ev["kind"])
         return
-    msg = EmailMessage()
-    msg["Subject"] = f"[{SITE_NAME} security] {ev['severity'].upper()}: " \
-                     f"{HEADLINES.get(ev['kind'], ev['kind'])}"
-    msg["From"] = SMTP_USER
-    msg["To"] = ALERT_EMAIL
-    msg["Date"] = formatdate(localtime=True)
-    msg.set_content(_body(ev))
-    if SMTP_PORT == 465:
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=20) as s:
-            s.login(SMTP_USER, SMTP_PASS)
-            s.send_message(msg)
-    else:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
-            s.ehlo()
-            s.starttls()
-            s.login(SMTP_USER, SMTP_PASS)
-            s.send_message(msg)
-    log.info("security alert emailed: %s -> %s", ev["kind"], ALERT_EMAIL)
+    subject = (f"[{SITE_NAME} security] {ev['severity'].upper()}: "
+               f"{HEADLINES.get(ev['kind'], ev['kind'])}")
+    mailer.send(ALERT_EMAIL, subject, _body(ev))
 
 
 def alerts_configured():
-    return bool(ALERT_EMAIL and SMTP_USER and SMTP_PASS)
+    return bool(ALERT_EMAIL and mailer.configured())
 
 
 def send_test_alert():
@@ -486,10 +468,15 @@ def login_failed(email):
 
 
 def signup_allowed():
-    """False if this IP has already created too many accounts this hour."""
-    count, tripped = _bump("signup", client_ip(), SIGNUP_LIMIT)
-    if tripped:
-        note("signup_abuse", f"{count} signups from this IP within the hour",
+    """False if this IP has already created too many accounts this hour.
+
+    SIGNUP_LIMIT is a permitted count, so the Nth signup still goes through and
+    the N+1th is refused — unlike the lockout buckets, where hitting the limit
+    is itself the failure.
+    """
+    count, _ = _bump("signup", client_ip(), SIGNUP_LIMIT)
+    if count > SIGNUP_LIMIT[0]:
+        note("signup_abuse", f"{count} signup attempts from this IP within the hour",
              severity="medium")
         return False
     return True
