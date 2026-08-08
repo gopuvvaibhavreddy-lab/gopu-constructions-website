@@ -174,6 +174,14 @@ BASE = """
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ company }} | Construction & Renovation in Telangana</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+<meta name="theme-color" content="#0B3B63">
+<meta property="og:title" content="{{ company }} — Building Trust">
+<meta property="og:description" content="Transparent per-sqft renovation and new-construction estimates across Telangana.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="{{ url_for('static', filename='og-image.png', _external=True) }}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+Telugu:wght@400;600&display=swap" rel="stylesheet">
@@ -189,7 +197,7 @@ BASE = """
 html{scroll-behavior:smooth;}
 body{background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
      font-family:'Noto Sans','Noto Sans Telugu',system-ui,sans-serif;}
-h1,h2,.logo-word{font-family:'Big Shoulders Display',sans-serif;font-weight:800;letter-spacing:.01em;text-transform:uppercase;}
+h1,h2{font-family:'Big Shoulders Display',sans-serif;font-weight:800;letter-spacing:.01em;text-transform:uppercase;}
 .mono,.rate,.total,td.num,th.num,input[type=number]{font-family:'IBM Plex Mono',ui-monospace,monospace;}
 a{color:inherit;}
 :focus-visible{outline:3px solid var(--laterite-bright);outline-offset:2px;}
@@ -197,11 +205,8 @@ a{color:inherit;}
 
 header{background:var(--blueprint);color:var(--chalk);padding:16px 5%;display:flex;justify-content:space-between;
        align-items:center;flex-wrap:wrap;gap:10px;border-bottom:2px dashed rgba(246,243,234,.35);}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-.logo-mark{width:34px;height:34px;background:var(--laterite);color:var(--chalk);display:flex;align-items:center;
-          justify-content:center;font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:1.05rem;flex-shrink:0;}
-.logo-word{font-size:1.15rem;color:var(--chalk);}
-.logo-word em{font-style:normal;color:var(--laterite-bright);}
+.logo{display:flex;align-items:center;text-decoration:none;flex-shrink:0;}
+.logo-img{height:42px;width:auto;display:block;}
 nav a{text-decoration:none;margin-left:20px;font-size:.85rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
       color:var(--chalk);border-bottom:2px solid transparent;padding-bottom:2px;}
 nav a:hover{border-color:var(--laterite-bright);}
@@ -255,9 +260,10 @@ label{font-weight:700;font-size:.85rem;letter-spacing:.02em;text-transform:upper
              font-family:'Big Shoulders Display',sans-serif;font-size:.65rem;letter-spacing:.1em;padding:2px 8px;}
 .total span{color:var(--laterite-bright);}
 
-footer{background:var(--blueprint);color:var(--chalk);text-align:center;padding:20px;font-size:.85rem;
+footer{background:var(--blueprint);color:var(--chalk);text-align:center;padding:24px 20px;font-size:.85rem;
       border-top:2px dashed rgba(246,243,234,.35);}
 footer a{color:var(--laterite-bright);text-decoration:none;}
+.footer-mark{height:44px;width:auto;display:block;margin:0 auto 12px;opacity:.9;}
 
 .hero{background:var(--blueprint);color:var(--chalk);padding:0;overflow:hidden;position:relative;}
 .hero-inner{max-width:1050px;margin:0 auto;padding:56px 5% 44px;display:grid;grid-template-columns:1.1fr 1fr;gap:30px;align-items:center;}
@@ -281,6 +287,8 @@ footer a{color:var(--laterite-bright);text-decoration:none;}
   nav a{margin-left:0;margin-right:16px;}
 }
 @media(max-width:480px){
+  .logo-img{height:34px;}
+  .footer-mark{height:36px;}
   .wrap{padding:28px 5%;}
   .card{padding:18px;}
   .hero-inner{padding:40px 5% 32px;}
@@ -291,9 +299,9 @@ footer a{color:var(--laterite-bright);text-decoration:none;}
 </head>
 <body>
 <header>
-  <a class="logo" href="{{ url_for('home') }}">
-    <span class="logo-mark">GC</span>
-    <span class="logo-word">{{ company.split()[0] }} <em>{{ company.split()[1:]|join(' ') }}</em></span>
+  <a class="logo" href="{{ url_for('home') }}" aria-label="{{ company }} — home">
+    <img class="logo-img" src="{{ url_for('static', filename='logo.png') }}"
+         alt="{{ company }} — Building Trust" width="880" height="136">
   </a>
   <nav>
     {% if session.get('user') %}
@@ -312,7 +320,9 @@ footer a{color:var(--laterite-bright);text-decoration:none;}
 {% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body }}
 </main>
-<footer>© 2026 {{ company }} · {{ area }} · {{ phone }} · <a href="https://wa.me/{{ wa }}">WhatsApp</a></footer>
+<footer>
+<img class="footer-mark" src="{{ url_for('static', filename='logo-mark.png') }}" alt="" aria-hidden="true">
+© 2026 {{ company }} · {{ area }} · {{ phone }} · <a href="https://wa.me/{{ wa }}">WhatsApp</a></footer>
 </body></html>
 """
 
