@@ -219,6 +219,17 @@ t("no-low-severity-emails", all(e["severity"] != "low" for e in SENT), True)
 t("alert-body-renders", "From IP:" in appmod.security._body(SENT[0]), True)
 t("alerts-not-configured-in-tests", appmod.security.alerts_configured(), False)
 
+# ---- no SyntaxWarnings (an invalid \escape in a template string is a real bug:
+#      it silently changes the HTML and breaks in a future Python)
+import warnings, py_compile, tempfile as _tf
+_src = os.path.join(os.path.dirname(os.path.abspath(appmod.__file__)), "app.py")
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter("always")
+    py_compile.compile(_src, cfile=_tf.mktemp(), doraise=True)
+t("app-compiles-without-warnings", [str(w.message) for w in caught], [])
+signup_html = c.get("/signup").data.decode()
+t("phone-pattern-escapes-hyphen", r'pattern="[0-9+ \-]{10,15}"' in signup_html, True)
+
 # ---- security: admin dashboard shows the log
 admin_html2 = c.get("/admin").data.decode()
 t("admin-has-security-section", 'id="security"' in admin_html2, True)

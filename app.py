@@ -476,7 +476,7 @@ def signup():
 <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <label>Full Name / పేరు</label><input name="name" required>
 <label>Email</label><input type="email" name="email" required>
-<label>Phone / ఫోన్</label><input name="phone" pattern="[0-9+ \-]{10,15}" maxlength="20" required>
+<label>Phone / ఫోన్</label><input name="phone" pattern="[0-9+ \\-]{10,15}" maxlength="20" required>
 <label>Password</label><input type="password" name="password" minlength="6" required>
 <button class="btn" style="width:100%">Create Account</button>
 </form>
